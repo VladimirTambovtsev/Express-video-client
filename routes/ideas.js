@@ -11,7 +11,7 @@ const Idea = mongoose.model('ideas');
 // "/" means "ideas" directory
 
 router.get('/', ensureAuthenticated, (req, res) => {  // added 2nd parameter for private folders
-	Idea.find({})	// list from mongo
+	Idea.find({user: req.user.id})	// list from mongo with id
 		.sort({date: 'desc'})
 		.then(ideas => {
 			res.render('ideas/index', {
@@ -32,9 +32,14 @@ router.get('/edit/:id', ensureAuthenticated,  (req, res) => {  // added 2nd para
 		_id: req.params.id
 	})
 	.then(idea => {
-		res.render('ideas/edit', {
-			idea
-		})
+		if (idea.user !== req.user.id) {
+			req.flash('error_msg', 'Not Authorized');
+			res.redirect('/ideas');
+		} else {
+			res.render('ideas/edit', {
+				idea
+			})
+		}
 	});
 });
 
@@ -58,7 +63,8 @@ router.post('/',  ensureAuthenticated, (req, res) => {  // added 2nd parameter f
 	} else {
 		const newUser = {
 			title: req.body.title,
-			details: req.body.details
+			details: req.body.details,
+			user: req.user.id
 		}
 		new Idea(newUser)
 			.save()
