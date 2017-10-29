@@ -3,10 +3,13 @@ const path = require('path'); // already included in node
 const exphbs  = require('express-handlebars');
 const methodOverride  = require('method-override'); // to change "put" to "post"
 const flash = require('connect-flash');  // just for nice perfomance messaging
-const session = require('express-session'); // creating sessions for auth
 const bodyParser  = require('body-parser');
+const session = require('express-session'); // creating sessions for auth
 const passport = require('passport');
 const mongoose  = require('mongoose');
+
+
+
 
 
 const app = express();
@@ -17,10 +20,13 @@ const users = require('./routes/users');
 // Passport Config
 require('./config/passport')(passport);
 
+// DB Config
+const db = require('./config/database');
+
 // Map global promise - get rid of warning
 mongoose.Promise = global.Promise;
 // Connect to mongoose
-mongoose.connect('mongodb://localhost/vidjot-dev', {
+mongoose.connect(db.mongoURI, {
   useMongoClient: true
 })
   .then(() => console.log('MongoDB Connected...'))
@@ -82,7 +88,7 @@ app.get('/about', (req, res) => {
 app.use('/ideas', ideas);
 app.use('/users', users);
 
-const port = 3000;
+const port = 3000 || process.env.PORT;
 
 app.listen(port, () =>{
   console.log(`Server started on port ${port}`);
